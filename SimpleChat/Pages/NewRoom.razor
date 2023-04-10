@@ -1,0 +1,50 @@
+﻿@using SimpleChat.Models
+@using SimpleChat.Data
+@inject ChatRoomService RoomService
+
+<EditForm Model="@chatRoom" OnValidSubmit="OnValidSubmit">
+    <MudItem xs="12" sm="12">
+        <MudCard>
+            <MudCardContent>
+                <MudTextField Label="Name" @bind-Value="chatRoom.Name" For="@(() => chatRoom.Name)" />
+                <MudTextField Label="Description" @bind-Value="chatRoom.Description" For="@(() => chatRoom.Description)" />
+                <MudSelect @bind-Value="@chatRoom.RoomType" Label="Type" For="@(() => chatRoom.RoomType)">
+                    <MudSelectItem Value="@RoomType.Public">Public</MudSelectItem>
+                    <MudSelectItem Value="@RoomType.Private">Private</MudSelectItem>
+                </MudSelect>
+                <MudSelect @bind-Value="@chatRoom.RoomCategory" Label="Category" For="@(() => chatRoom.RoomCategory)">
+                    @foreach (var item in roomCategories)
+                    {
+                        <MudSelectItem Value="@item">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                    Create
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</EditForm>
+
+
+@code {
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+    private ChatRoom chatRoom = new();
+    private List<RoomCategory> roomCategories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        roomCategories = await RoomService.GetCategories();
+    }
+
+    private void OnValidSubmit(EditContext context)
+    {
+        RoomService.SaveNewRoom(chatRoom);
+        BlazoredModal.CloseAsync();
+        StateHasChanged();
+    }
+
+}

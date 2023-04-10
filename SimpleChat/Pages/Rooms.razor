@@ -1,0 +1,50 @@
+﻿@page "/rooms"
+<PageTitle>Weather forecast</PageTitle>
+
+@using SimpleChat.Models
+@using SimpleChat.Data
+@inject ChatRoomService RoomService
+@inject IModalService modal
+
+<h3>Rooms</h3>
+
+@if (chatRooms == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudPaper>
+        <MudNavMenu Class="mud-width-full">
+            <MudText Typo="Typo.h6" Class="px-4">Available Rooms</MudText>
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Icons</MudText>
+            <MudDivider Class="my-2" />
+            @foreach (var item in chatRooms)
+            {
+                string address = $"/Room/{item.Id}";
+                <MudNavLink Href=@address Icon="@Icons.Material.Filled.Message">@item.Name</MudNavLink>
+            }
+            <MudButton OnClick="CreateRoom">New Room</MudButton>
+        </MudNavMenu>
+    </MudPaper>
+}
+
+@code {
+    private List<ChatRoom>? chatRooms;
+    protected override async Task OnInitializedAsync()
+    {
+        chatRooms = await RoomService.GetChatRooms();
+    }
+
+    private async Task CreateRoom()
+    {
+        var newRoomModal = modal.Show<NewRoom>("Create new room");
+        var result = await newRoomModal.Result;
+        if(result.Confirmed)
+        {
+            newRoomModal.Close();
+            chatRooms = await RoomService.GetChatRooms();
+            StateHasChanged();
+        }
+    }
+}

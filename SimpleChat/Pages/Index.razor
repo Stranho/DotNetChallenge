@@ -1,0 +1,14 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<h1>Welcome to Simple Chat.</h1>
+<AuthorizeView>
+    <Authorized>
+        <MudText>Join a <MudLink Href="/Rooms">room</MudLink> to start chatting</MudText>
+    </Authorized>
+    <NotAuthorized>
+        <MudText>To start chating, please Log In or Register.</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+

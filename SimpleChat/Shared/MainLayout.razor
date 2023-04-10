@@ -1,0 +1,82 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client;
+@using SimpleChat.Pages
+@inject Helpers.SharedData AppData
+@inherits LayoutComponentBase
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<PageTitle>Simple Chat</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4 auth">
+            <LoginDisplay />
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            <CascadingValue Value="hubConnection">
+                <CascadingValue Value="CurrentRoomId">
+                    @Body
+                </CascadingValue>
+            </CascadingValue>
+        </article>
+    </main>
+</div>
+
+@code {
+    private HubConnection? hubConnection;
+    private string CurrentUserId { get; set; } = string.Empty;
+    private int CurrentRoomId { get; set; }
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder().WithUrl(_navigationManager.ToAbsoluteUri("/chathub")).WithAutomaticReconnect().Build();
+        await hubConnection.StartAsync();
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        CurrentUserId = user.Claims.Where(a => a.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Select(a => a.Value).FirstOrDefault();
+
+        hubConnection.On<string, int, string>("ReceiveChatNotification", (message, roomId, roomName) =>
+        {
+            if (roomId != AppData.RoomId)
+            {
+                _snackBar.Add(message, Severity.Info, config =>
+                {
+                    config.VisibleStateDuration = 10000;
+                    config.HideTransitionDuration = 500;
+                    config.ShowTransitionDuration = 500;
+                    config.Action = "Go?";
+                    config.ActionColor = Color.Info;
+                    config.Onclick = snackbar =>
+                    { 
+                        _navigationManager.NavigateTo($"room/{roomId}");
+                        return Task.CompletedTask;
+                    };
+                });
+            }
+        });
+
+        hubConnection.On<string, bool, string>("ReceiveBotNotification", (message, isError, fromUser) =>
+        {
+            CurrentUserId = user.Claims.Where(a => a.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Select(a => a.Value).FirstOrDefault();
+            if (CurrentUserId == fromUser)
+            {
+                _snackBar.Add(message, isError ? Severity.Error : Severity.Info, config =>
+                {
+                    config.Icon = "";
+                    config.BackgroundBlurred = true;
+                    config.VisibleStateDuration = 10000;
+                    config.HideTransitionDuration = 500;
+                    config.ShowTransitionDuration = 500;
+                });
+            }
+        });
+    }
+}
