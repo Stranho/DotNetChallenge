@@ -23,6 +23,7 @@ namespace SimpleChat.Pages
         {
             if (!string.IsNullOrEmpty(CurrentMessage) && !string.IsNullOrEmpty(roomId))
             {
+                StateHasChanged();
                 //Save Message to DB
                 RoomMessage chatHistory = new()
                 {
