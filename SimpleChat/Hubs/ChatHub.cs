@@ -7,12 +7,22 @@ namespace SimpleChat.Hubs
     {
         public async Task SendMessageAsync(RoomMessage message, string userName)
         {
-            await Clients.All.SendAsync("ReceiveMessage", message, userName);
+            await Clients.Group(message.RoomId.ToString()).SendAsync("ReceiveMessage", message, userName);
         }
 
         public async Task ChatNotificationAsync(string message, int roomId, string roomName)
         {
-            await Clients.All.SendAsync("ReceiveChatNotification", message, roomId, roomName);
+            await Clients.Group(roomId.ToString()).SendAsync("ReceiveChatNotification", message, roomId, roomName);
+        }
+
+        public async Task JoinRoomAsync(int roomId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomId.ToString());
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            await base.OnConnectedAsync();
         }
     }
 }

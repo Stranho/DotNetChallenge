@@ -16,7 +16,7 @@
                 <MudIcon Icon="@Icons.Material.Outlined.ChatBubble" Style="margin-right:10px"></MudIcon>
                 <MudText Typo="Typo.h6">@_chatRoom.Name</MudText>
             </MudToolBar>
-            <div class="d-flex flex-column px-4" style="max-height:65vh;min-height:65vh; overflow:scroll;" id="chatContainer">
+            <div class="d-flex flex-column px-4" style="max-height:65vh;min-height:65vh;overflow:auto;scroll-behavior:smooth" id="chatContainer">
                 @foreach (var message in messages)
                 {
                     <div class="d-flex flex-row my-4">

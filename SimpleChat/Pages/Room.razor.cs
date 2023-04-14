@@ -23,7 +23,6 @@ namespace SimpleChat.Pages
         {
             if (!string.IsNullOrEmpty(CurrentMessage) && !string.IsNullOrEmpty(roomId))
             {
-                StateHasChanged();
                 //Save Message to DB
                 RoomMessage chatHistory = new()
                 {
@@ -41,14 +40,14 @@ namespace SimpleChat.Pages
                         .AllowAnyHttpStatus()
                         .PostJsonAsync(chatMessage);
                     CurrentMessage = string.Empty;
-                    StateHasChanged();
+                    await InvokeAsync(() => StateHasChanged());
                     return;
                 }
 
                 await RoomService.SaveMessageAsync(chatHistory);
                 await hubConnection.SendAsync("SendMessageAsync", chatHistory, CurrentUserId);
                 CurrentMessage = string.Empty;
-                StateHasChanged();
+                await InvokeAsync(() => StateHasChanged());
             }
         }
 
@@ -62,6 +61,7 @@ namespace SimpleChat.Pages
             CurrentRoomId = Convert.ToInt32(roomId);
             _chatRoom = await RoomService.GetChatRoom(CurrentRoomId);
             AppData.RoomId = CurrentRoomId;
+            await hubConnection.SendAsync("JoinRoomAsync", CurrentRoomId);
 
             if (_chatRoom != null)
             {
@@ -75,8 +75,9 @@ namespace SimpleChat.Pages
             hubConnection.On<RoomMessage, string>("ReceiveMessage", async (message, userName) =>
             {
                 messages.Add(new RoomMessage { Message = message.Message, Timestamp = message.Timestamp, UserId = userName });
-                await hubConnection.SendAsync("ChatNotificationAsync", $"New Message on {_chatRoom?.Name}", CurrentRoomId, _chatRoom?.Name);
-                StateHasChanged();
+                //await hubConnection.SendAsync("ChatNotificationAsync", $"New Message on {_chatRoom?.Name}", CurrentRoomId, _chatRoom?.Name);
+                await InvokeAsync(() => StateHasChanged());
+                await _jsRuntime.InvokeVoidAsync("OnScrollEvent", "chatContainer");
             });
         }
     }
