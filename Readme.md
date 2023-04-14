@@ -12,7 +12,7 @@ dotnet restore
 docker pull rabbitmq
 ```
 ```ps
-sudo docker pull mcr.microsoft.com/mssql/server:2022-latest
+docker pull mcr.microsoft.com/mssql/server:2022-latest
 ```
 
 
