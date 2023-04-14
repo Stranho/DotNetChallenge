@@ -15,7 +15,6 @@ docker pull rabbitmq
 docker pull mcr.microsoft.com/mssql/server:2022-latest
 ```
 
-
 ### Run the docker image for RabbitMQ and MSSQL Server
 ```ps
 docker run -d --hostname rabbitmq --name local-rabbit -p 8080:15672 -p 5672:5672 -p 25676:25676 rabbitmq:3-management

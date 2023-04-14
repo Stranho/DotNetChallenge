@@ -20,9 +20,9 @@ namespace SimpleChat.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId.ToString());
         }
 
-        public override async Task OnConnectedAsync()
+        public async Task LeaveRoomAsync(int roomId)
         {
-            await base.OnConnectedAsync();
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId.ToString());
         }
     }
 }

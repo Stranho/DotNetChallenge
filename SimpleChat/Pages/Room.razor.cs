@@ -18,6 +18,7 @@ namespace SimpleChat.Pages
         [Parameter] public string CurrentMessage { get; set; } = string.Empty;
         [Parameter] public string CurrentUserId { get; set; } = string.Empty;
         private const string BotAddress = "https://localhost:5000/";
+        private bool _disposed = false;
 
         private async Task SubmitAsync()
         {
@@ -61,7 +62,6 @@ namespace SimpleChat.Pages
             CurrentRoomId = Convert.ToInt32(roomId);
             _chatRoom = await RoomService.GetChatRoom(CurrentRoomId);
             AppData.RoomId = CurrentRoomId;
-            await hubConnection.SendAsync("JoinRoomAsync", CurrentRoomId);
 
             if (_chatRoom != null)
             {
@@ -72,6 +72,7 @@ namespace SimpleChat.Pages
             {
                 await hubConnection.StartAsync();
             }
+            await hubConnection.SendAsync("JoinRoomAsync", CurrentRoomId);
             hubConnection.On<RoomMessage, string>("ReceiveMessage", async (message, userName) =>
             {
                 messages.Add(new RoomMessage { Message = message.Message, Timestamp = message.Timestamp, UserId = userName });
@@ -79,6 +80,21 @@ namespace SimpleChat.Pages
                 await InvokeAsync(() => StateHasChanged());
                 await _jsRuntime.InvokeVoidAsync("OnScrollEvent", "chatContainer");
             });
+        }
+
+        public void Dispose() => Dispose(true);
+
+        public void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            if (disposing)
+            {
+                hubConnection.SendAsync("LeaveRoomAsync", _chatRoom?.Id);
+            }
+            _disposed = true;
         }
     }
 }
